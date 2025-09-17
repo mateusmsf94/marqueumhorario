@@ -8,4 +8,7 @@ class User < ApplicationRecord
   validates :last_name, presence: true
   validates :phone, presence: true
   validates :cpf, presence: true
+
+  has_many :memberships
+  has_many :offices, throught: :memberships
 end
