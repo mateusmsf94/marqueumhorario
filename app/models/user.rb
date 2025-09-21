@@ -9,6 +9,19 @@ class User < ApplicationRecord
   validates :phone, presence: true
   validates :cpf, presence: true
 
-  has_many :memberships
-  has_many :offices, throught: :memberships
+  has_many :memberships, dependent: :destroy
+  has_many :offices, through: :memberships
+
+  has_many :user_roles, dependent: :destroy
+  has_many :roles, through: :user_roles
+
+  # Automatically assign 'customer' role to new users
+  after_create :assign_default_role
+
+  private
+
+  def assign_default_role
+    customer_role = Role.find_by(name: "customer")
+    self.roles << customer_role if customer_role && !self.roles.exists?(name: "customer")
+  end
 end

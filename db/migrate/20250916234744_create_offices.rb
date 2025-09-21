@@ -3,6 +3,7 @@ class CreateOffices < ActiveRecord::Migration[8.0]
     create_table :offices do |t|
       t.string :name
       t.string :address
+      t.integer :role
       t.string :city
       t.string :state
       t.string :zip_code
