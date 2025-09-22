@@ -2,12 +2,7 @@ class Membership < ApplicationRecord
   belongs_to :user
   belongs_to :office
 
-  enum role: {
-    owner: 0,
-    co_owner: 1,
-    secretary: 2,
-    customer: 3
-  }
+  enum :role, { owner: 0, co_owner: 1, secretary: 2 }
 
   validates :user_id, uniqueness: { scope: :office_id }
   before_destroy :ensure_owner_remains
@@ -19,7 +14,7 @@ class Membership < ApplicationRecord
   private
 
   def ensure_owner_remains
-    if owner? && office.memberships.owners.count == 1
+    if owner? && office.memberships.where(role: :owner).count == 1
       errors.add(:base, "Cannot remove the last owner of an office")
       throw(:abort)
     end
