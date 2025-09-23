@@ -3,7 +3,9 @@
 one:
   user: one
   office: one
+  role: owner
 
-two:
+secretary_user:
   user: two
   office: two
+  role: secretary
