@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+echo "🔍 Running local CI checks..."
+echo ""
+
+echo "📝 Linting code..."
+bin/rubocop -f github
+
+echo "🔒 Scanning for Ruby security vulnerabilities..."
+bin/brakeman --no-pager
+
+echo "🔍 Scanning JavaScript dependencies..."
+bin/importmap audit
+
+echo "🧪 Running tests..."
+RAILS_ENV=test bin/rails db:test:prepare test test:system
+
+echo ""
+echo "✅ All CI checks passed!"
