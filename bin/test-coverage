@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Run tests with coverage analysis
+ENV['COVERAGE'] = 'true'
+
+puts "🧪 Running tests with coverage analysis..."
+success = system('bin/rails test test:system')
+
+if success
+  puts "\n✅ Tests passed!"
+  puts "📊 Coverage report generated in coverage/index.html"
+  puts "   Open it in your browser to view detailed coverage information"
+else
+  puts "\n❌ Tests failed!"
+  exit(1)
+end

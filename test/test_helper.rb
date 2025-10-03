@@ -1,4 +1,11 @@
 ENV["RAILS_ENV"] ||= "test"
+
+# Start SimpleCov before requiring the application
+if ENV["COVERAGE"]
+  require "simplecov"
+  SimpleCov.start "rails"
+end
+
 require_relative "../config/environment"
 require "rails/test_help"
 
