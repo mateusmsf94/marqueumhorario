@@ -3,7 +3,14 @@ ENV["RAILS_ENV"] ||= "test"
 # Start SimpleCov before requiring the application
 if ENV["COVERAGE"]
   require "simplecov"
-  SimpleCov.start "rails"
+  require "simplecov-cobertura"
+
+  SimpleCov.start "rails" do
+    formatter SimpleCov::Formatter::MultiFormatter.new([
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::CoberturaFormatter
+    ])
+  end
 end
 
 require_relative "../config/environment"

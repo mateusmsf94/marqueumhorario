@@ -307,6 +307,9 @@ GEM
       docile (~> 1.1)
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
+    simplecov-cobertura (3.1.0)
+      rexml
+      simplecov (~> 0.19)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     solid_cable (3.0.12)
@@ -400,6 +403,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver
   simplecov
+  simplecov-cobertura
   solid_cable
   solid_cache
   solid_queue
