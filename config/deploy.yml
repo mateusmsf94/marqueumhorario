@@ -2,7 +2,7 @@
 service: marqueumhorario
 
 # Name of the container image.
-image: mateusmsf94/marqueumhorario
+image: <%= ENV['KAMAL_IMAGE'] || 'ghcr.io/mateusmsf94/marqueumhorario:latest' %>
 
 # Deploy to these servers.
 servers:
@@ -78,7 +78,8 @@ asset_path: /rails/public/assets
 # Since we're building images in GitHub Actions and pushing to GHCR, 
 # we don't need Kamal to build images. Set to false to use pre-built images.
 builder:
-  arch: amd64
+  remote:
+    arch: amd64
 
 # Use a different ssh user than root
 ssh:

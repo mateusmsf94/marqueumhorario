@@ -62,7 +62,12 @@ jobs:
       
       - name: Output image
         id: image
-        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
+          else
+            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
 
   deploy:
     name: Deploy with Kamal
@@ -98,4 +103,6 @@ jobs:
         run: gem install kamal
         
       - name: Deploy with Kamal
+        env:
+          KAMAL_IMAGE: ${{ needs.build.outputs.image }}
         run: kamal deploy --skip-push
