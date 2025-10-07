@@ -7,10 +7,10 @@ image: ghcr.io/mateusmsf94/marqueumhorario
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 54.242.197.228
   # job:
   #   hosts:
-  #     - 192.168.0.1
+  #     - 54.242.197.228
   #   cmd: bin/jobs
 
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
