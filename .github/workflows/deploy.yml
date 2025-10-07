@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   packages: write
+  deployments: write
 
 env:
   REGISTRY: ghcr.io
@@ -126,4 +127,29 @@ jobs:
           else
             echo "Deploying with SHA tag"
             kamal deploy --skip-push
+          fi
+        
+      - name: Health Check
+        run: |
+          echo "Checking application health..."
+          for i in {1..30}; do
+            if curl -f https://mateusmsf.dev/up > /dev/null 2>&1; then
+              echo "✅ Application is healthy!"
+              exit 0
+            fi
+            echo "⏳ Waiting for application to be ready... (attempt $i/30)"
+            sleep 10
+          done
+          echo "❌ Health check failed after 5 minutes"
+          exit 1
+        continue-on-error: false
+        
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "🚀 Deployment completed successfully!"
+            echo "🌐 Application is live at: https://mateusmsf.dev"
+          else
+            echo "❌ Deployment failed!"
           fi
