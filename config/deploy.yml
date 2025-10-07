@@ -76,21 +76,8 @@ asset_path: /rails/public/assets
 
 # Configure the image builder.
 # Since we're building images in GitHub Actions and pushing to GHCR, 
-# we don't need Kamal to build images. Comment out to use pre-built images.
-# builder:
-#   arch: amd64
-#   
-#   # Pass Ruby version to Docker build
-#   args:
-#     RUBY_VERSION: ruby-3.4.6
-#
-#   # # Build image via remote server (useful for faster amd64 builds on arm64 computers)
-#   # remote: ssh://docker@docker-builder-server
-#   #
-#   # # Pass secrets to the Docker build process if needed
-#   # secrets:
-#   #   - GITHUB_TOKEN
-#   #   - RAILS_MASTER_KEY
+# we don't need Kamal to build images. Set to false to use pre-built images.
+builder: false
 
 # Use a different ssh user than root
 # ssh:
