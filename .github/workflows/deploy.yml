@@ -41,9 +41,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=sha,prefix={{branch}}-
+            type=sha
             type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push Docker image
@@ -93,6 +92,14 @@ jobs:
       
       - name: Install Kamal
         run: gem install kamal
+        
+      - name: Login to GHCR for manifest check
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        
+      - name: Verify image exists
+        run: |
+          echo "Checking if image exists: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         
       - name: Deploy with Kamal
         run: kamal deploy --skip-push
