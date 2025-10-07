@@ -2,7 +2,7 @@
 service: marqueumhorario
 
 # Name of the container image.
-image: ghcr.io/mateusmsf94/marqueumhorario
+image: ghcr.io/mateusmsf94/marqueumhorario:latest
 
 # Deploy to these servers.
 servers:
