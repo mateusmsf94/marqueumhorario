@@ -2,7 +2,7 @@
 service: marqueumhorario
 
 # Name of the container image.
-image: mateusmsf94/marqueumhorario
+image: mateusmsf94/marqueumhorario:14-add-claude-code-to-review
 
 # Deploy to these servers.
 servers:
