@@ -61,6 +61,9 @@ jobs:
           labels: |
             ${{ steps.meta.outputs.labels }}
             service=marqueumhorario
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Marque um Horario - Rails application for scheduling
+            org.opencontainers.image.licenses=MIT
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
