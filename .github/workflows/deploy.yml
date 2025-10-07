@@ -41,9 +41,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix={{branch}}-
-            type=sha
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Debug tags
+        run: |
+          echo "Generated tags:"
+          echo "${{ steps.meta.outputs.tags }}"
+          echo "Full SHA: ${{ github.sha }}"
       
       - name: Build and push Docker image
         id: build
@@ -99,7 +104,21 @@ jobs:
       - name: Verify image exists
         run: |
           echo "Checking if image exists: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
-          docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}; then
+            echo "SHA tag found!"
+          else
+            echo "SHA tag not found, checking latest tag..."
+            docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            echo "Will deploy using latest tag instead"
+            echo "DEPLOY_VERSION=latest" >> $GITHUB_ENV
+          fi
         
       - name: Deploy with Kamal
-        run: kamal deploy --skip-push
+        run: |
+          if [ "${DEPLOY_VERSION}" = "latest" ]; then
+            echo "Deploying with latest tag"
+            kamal deploy --skip-push --version=latest
+          else
+            echo "Deploying with SHA tag"
+            kamal deploy --skip-push
+          fi
