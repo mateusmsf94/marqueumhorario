@@ -62,12 +62,7 @@ jobs:
       
       - name: Output image
         id: image
-        run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
-          else
-            echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
-          fi
+        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
 
   deploy:
     name: Deploy with Kamal
@@ -79,6 +74,8 @@ jobs:
       RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
       KAMAL_REGISTRY_PASSWORD: ${{ secrets.GHCR_TOKEN }}
       KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      MARQUEUMHORARIO_DATABASE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -87,11 +84,6 @@ jobs:
       - uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EC2 }}
-
-      - name: Test SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@54.242.197.228 'echo "SSH connection successful!"'
-          echo "✅ SSH connection to EC2 instance verified"
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -103,6 +95,4 @@ jobs:
         run: gem install kamal
         
       - name: Deploy with Kamal
-        env:
-          KAMAL_IMAGE: ${{ needs.build.outputs.image }}
         run: kamal deploy --skip-push
