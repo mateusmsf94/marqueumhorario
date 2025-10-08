@@ -5,42 +5,192 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: mateusmsf94/marqueumhorario
+
 jobs:
-  deploy:
-    name: Deploy
+  build:
+    name: Build and push Docker image
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      DOCKER_BUILDKIT: 1
-      VERSION: ${{ github.sha }}
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+      digest: ${{ steps.build.outputs.digest }}
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Debug tags
+        run: |
+          echo "Generated tags:"
+          echo "${{ steps.meta.outputs.tags }}"
+          echo "Full SHA: ${{ github.sha }}"
+      
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            service=marqueumhorario
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.description=Marque um Horario - Rails application for scheduling
+            org.opencontainers.image.licenses=MIT
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            RUBY_VERSION=3.4.5
+      
+      - name: Output image
+        id: image
+        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+  deploy:
+    name: Deploy with Kamal
+    runs-on: ubuntu-latest
+    needs: build
+    
+    env:
+      RAILS_ENV: production
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      KAMAL_REGISTRY_PASSWORD: ${{ secrets.GHCR_TOKEN }}
+      KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      MARQUEUMHORARIO_DATABASE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EC2 }}
+    steps:
+      - name: Create deployment
+        uses: actions/github-script@v7
+        id: deployment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: 'production',
+              description: 'Deploy to production server',
+              auto_merge: false,
+              required_contexts: []
+            });
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deployment.data.id,
+              state: 'in_progress',
+              description: 'Deployment started'
+            });
+            
+            return deployment.data.id;
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_EC2 }}
 
-    - name: Add server to known hosts
-      run: |
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-
-    - name: Set up Ruby (for Kamal)
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.4.5'
-        bundler-cache: true
-
-    - name: Deploy with Kamal
-      env:
-        KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
-        RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        MARQUEUMHORARIO_DATABASE_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      run: |
-        bin/kamal deploy --version=$VERSION
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      
+      - name: Install Kamal
+        run: gem install kamal
+        
+      - name: Login to GHCR for manifest check
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+        
+      - name: Verify image exists
+        run: |
+          echo "Checking if image exists: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}; then
+            echo "SHA tag found!"
+          else
+            echo "SHA tag not found, checking latest tag..."
+            docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            echo "Will deploy using latest tag instead"
+            echo "DEPLOY_VERSION=latest" >> $GITHUB_ENV
+          fi
+        
+      - name: Deploy with Kamal
+        run: |
+          if [ "${DEPLOY_VERSION}" = "latest" ]; then
+            echo "Deploying with latest tag"
+            kamal deploy --skip-push --version=latest
+          else
+            echo "Deploying with SHA tag"
+            kamal deploy --skip-push
+          fi
+        
+      - name: Health Check
+        run: |
+          echo "Checking application health..."
+          for i in {1..30}; do
+            if curl -f https://mateusmsf.dev/up > /dev/null 2>&1; then
+              echo "✅ Application is healthy!"
+              exit 0
+            fi
+            echo "⏳ Waiting for application to be ready... (attempt $i/30)"
+            sleep 10
+          done
+          echo "❌ Health check failed after 5 minutes"
+          exit 1
+        continue-on-error: false
+        
+      - name: Deployment Status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deploymentId = ${{ steps.deployment.outputs.result }};
+            const success = '${{ job.status }}' === 'success';
+            
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: deploymentId,
+              state: success ? 'success' : 'failure',
+              description: success ? 'Deployment completed successfully' : 'Deployment failed',
+              environment_url: success ? 'https://mateusmsf.dev' : undefined
+            });
+            
+            if (success) {
+              console.log('🚀 Deployment completed successfully!');
+              console.log('🌐 Application is live at: https://mateusmsf.dev');
+            } else {
+              console.log('❌ Deployment failed!');
+            }
