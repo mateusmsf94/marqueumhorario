@@ -1,0 +1,10 @@
+name: 'Setup Ruby Environment'
+description: 'Checkout code and set up Ruby with bundler cache'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: .ruby-version
+        bundler-cache: true
