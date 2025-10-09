@@ -3,9 +3,6 @@ description: 'Checkout code and set up Ruby with bundler cache'
 runs:
   using: 'composite'
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
