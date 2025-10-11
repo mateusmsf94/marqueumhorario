@@ -10,9 +10,30 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_21_213806) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_09_213507) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "appointments", force: :cascade do |t|
+    t.datetime "book_datetime"
+    t.datetime "start_datetime"
+    t.datetime "end_datetime"
+    t.boolean "is_unavailability"
+    t.string "location"
+    t.string "color"
+    t.integer "status"
+    t.bigint "provider_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "office_id", null: false
+    t.text "id_google_calendar"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_appointments_on_customer_id"
+    t.index ["office_id"], name: "index_appointments_on_office_id"
+    t.index ["provider_id"], name: "index_appointments_on_provider_id"
+    t.check_constraint "book_datetime <= start_datetime", name: "check_book_before_start"
+    t.check_constraint "start_datetime < end_datetime", name: "check_datetime_order"
+  end
 
   create_table "memberships", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -75,6 +96,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_21_213806) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "appointments", "offices"
+  add_foreign_key "appointments", "users", column: "customer_id"
+  add_foreign_key "appointments", "users", column: "provider_id"
   add_foreign_key "memberships", "offices"
   add_foreign_key "memberships", "users"
   add_foreign_key "user_roles", "roles"

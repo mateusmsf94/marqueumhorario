@@ -15,6 +15,10 @@ class User < ApplicationRecord
   has_many :user_roles, dependent: :destroy
   has_many :roles, through: :user_roles
 
+  has_many :provided_appointments, class_name: "Appointment", foreign_key: "provider_id", dependent: :destroy
+  has_many :customer_appointments, class_name: "Appointment", foreign_key: "customer_id", dependent: :destroy
+
+
   # Automatically assign 'customer' role to new users
   after_create :assign_default_role
 
