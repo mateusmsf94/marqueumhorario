@@ -1,11 +1,11 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  user: one
-  office: one
+main_office_owner:
+  user: provider_maria
+  office: main_office
   role: owner
 
-secretary_user:
-  user: two
-  office: two
+branch_office_secretary:
+  user: customer_julia
+  office: branch_office
   role: secretary

@@ -2,14 +2,14 @@ require "test_helper"
 
 class AppointmentTest < ActiveSupport::TestCase
   setup do
-    @provider = users(:one)
-    @customer = users(:two)
-    @office = offices(:one)
+    @provider = users(:provider_maria)
+    @customer = users(:customer_julia)
+    @office = offices(:main_office)
   end
 
   test "fixture is valid" do
     # TODO: replace fixture-based assertion when factories are added
-    assert appointments(:one).valid?
+    assert appointments(:confirmed_oct_first).valid?
   end
 
   test "end datetime must be after start datetime" do
@@ -45,7 +45,7 @@ class AppointmentTest < ActiveSupport::TestCase
   end
 
   test "status enum transitions" do
-    appointment = appointments(:one)
+    appointment = appointments(:confirmed_oct_first)
 
     assert_equal "confirmed", appointment.status
 
@@ -59,8 +59,8 @@ class AppointmentTest < ActiveSupport::TestCase
     travel_to Time.zone.local(2025, 9, 30, 8) do
       upcoming = Appointment.upcoming
 
-      assert_includes upcoming, appointments(:one)
-      assert_includes upcoming, appointments(:two)
+      assert_includes upcoming, appointments(:confirmed_oct_first)
+      assert_includes upcoming, appointments(:confirmed_oct_fifth)
     end
   end
 
@@ -68,8 +68,8 @@ class AppointmentTest < ActiveSupport::TestCase
     travel_to Time.zone.local(2025, 10, 6, 9) do
       past = Appointment.past
 
-      assert_includes past, appointments(:one)
-      assert_includes past, appointments(:two)
+      assert_includes past, appointments(:confirmed_oct_first)
+      assert_includes past, appointments(:confirmed_oct_fifth)
     end
   end
 
@@ -77,23 +77,23 @@ class AppointmentTest < ActiveSupport::TestCase
     target_date = Date.new(2025, 10, 1)
     results = Appointment.by_date(target_date)
 
-    assert_includes results, appointments(:one)
-    refute_includes results, appointments(:two)
+    assert_includes results, appointments(:confirmed_oct_first)
+    refute_includes results, appointments(:confirmed_oct_fifth)
   end
 
   test "for_user scope returns both provider and customer appointments" do
     provider_results = Appointment.for_user(@provider)
-    customer_results = Appointment.for_user(users(:two))
+  customer_results = Appointment.for_user(users(:customer_julia))
 
-    assert_includes provider_results, appointments(:one)
-    refute_includes provider_results, appointments(:two)
+    assert_includes provider_results, appointments(:confirmed_oct_first)
+    refute_includes provider_results, appointments(:confirmed_oct_fifth)
 
-    assert_includes customer_results, appointments(:two)
+    assert_includes customer_results, appointments(:confirmed_oct_fifth)
   end
 
   test "for_office scope returns appointments for the given office" do
-    assert_includes Appointment.for_office(@office), appointments(:one)
-    refute_includes Appointment.for_office(@office), appointments(:two)
+    assert_includes Appointment.for_office(@office), appointments(:confirmed_oct_first)
+    refute_includes Appointment.for_office(@office), appointments(:confirmed_oct_fifth)
   end
 
   test "prevents double booking for overlapping provider appointments" do
@@ -117,8 +117,8 @@ class AppointmentTest < ActiveSupport::TestCase
     travel_to Time.zone.local(2025, 9, 29, 12) do
       overlapping = Appointment.new(
         provider: users(:john),
-        customer: users(:two),
-        office: offices(:two),
+  customer: users(:customer_julia),
+  office: offices(:branch_office),
         status: :pending,
         start_datetime: Time.zone.local(2025, 10, 5, 13, 30),
         end_datetime: Time.zone.local(2025, 10, 5, 14, 30),
@@ -134,7 +134,7 @@ class AppointmentTest < ActiveSupport::TestCase
     travel_to Time.zone.local(2025, 9, 29, 12) do
       overlapping = Appointment.new(
         provider: users(:john),
-        customer: users(:two),
+  customer: users(:customer_julia),
         office: @office,
         status: :pending,
         start_datetime: Time.zone.local(2025, 10, 1, 9, 30),

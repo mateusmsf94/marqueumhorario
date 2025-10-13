@@ -4,7 +4,7 @@
 # model remove the "{}" from the fixture names and add the columns immediately
 # below each fixture, per the syntax in the comments below
 #
-one:
+main_office:
   name: "Main Office"
   address: "123 Main St"
   city: "São Paulo"
@@ -12,7 +12,7 @@ one:
   zip_code: "01234-567"
   phone_number: "+5511555555555"
 
-two:
+branch_office:
   name: "Branch Office"
   address: "456 Oak Ave"
   city: "Rio de Janeiro"
