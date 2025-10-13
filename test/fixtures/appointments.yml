@@ -1,6 +1,6 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
+confirmed_oct_first:
   book_datetime: 2025-09-30 14:00:00
   start_datetime: 2025-10-01 09:00:00
   end_datetime: 2025-10-01 10:00:00
@@ -8,13 +8,13 @@ one:
   location: MyString
   color: MyString
   # TODO: align status fixtures with factory once introduced
-  status: confirmed
-  provider: one
-  customer: one
-  office: one
+  status: <%= Appointment.statuses[:confirmed] %>
+  provider: provider_maria
+  customer: customer_julia
+  office: main_office
   id_google_calendar: MyText
 
-two:
+confirmed_oct_fifth:
   book_datetime: 2025-10-02 15:00:00
   start_datetime: 2025-10-05 13:00:00
   end_datetime: 2025-10-05 14:00:00
@@ -22,8 +22,8 @@ two:
   location: MyString
   color: MyString
   # TODO: align status fixtures with factory once introduced
-  status: confirmed
-  provider: two
-  customer: two
-  office: two
+  status: <%= Appointment.statuses[:confirmed] %>
+  provider: john
+  customer: customer_julia
+  office: branch_office
   id_google_calendar: MyText

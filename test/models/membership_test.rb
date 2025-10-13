@@ -3,7 +3,7 @@ require "test_helper"
 class MembershipTest < ActiveSupport::TestCase
   test "membership cannot be a customer" do
     user = users(:john)
-    office = offices(:one)
+  office = offices(:main_office)
 
     # Customer role is not defined in the enum, so this should raise an ArgumentError
     assert_raises(ArgumentError, "'customer' is not a valid role") do
@@ -22,7 +22,7 @@ class MembershipTest < ActiveSupport::TestCase
 
   test "should allow owner role" do
     user = users(:john)
-    office = offices(:one)
+  office = offices(:main_office)
 
     membership = Membership.new(user: user, office: office, role: :owner)
 
@@ -31,7 +31,7 @@ class MembershipTest < ActiveSupport::TestCase
 
   test "should allow co_owner role" do
     user = users(:john)
-    office = offices(:one)
+  office = offices(:main_office)
 
     membership = Membership.new(user: user, office: office, role: :co_owner)
 
@@ -40,7 +40,7 @@ class MembershipTest < ActiveSupport::TestCase
 
   test "should allow secretary role" do
     user = users(:john)
-    office = offices(:one)
+  office = offices(:main_office)
 
     membership = Membership.new(user: user, office: office, role: :secretary)
 
@@ -48,30 +48,30 @@ class MembershipTest < ActiveSupport::TestCase
   end
 
   test "owner should have admin access" do
-    membership = memberships(:one) # This is an owner from fixtures
+  membership = memberships(:main_office_owner) # This is an owner from fixtures
 
     assert membership.has_admin_access
   end
 
   test "co_owner should have admin access" do
     user = users(:john)
-    office = offices(:one)
-    membership = Membership.create!(user: user, office: office, role: :co_owner)
+  office = offices(:main_office)
+  membership = Membership.create!(user: user, office: office, role: :co_owner)
 
     assert membership.has_admin_access
   end
 
   test "secretary should have admin access" do
     user = users(:john)
-    office = offices(:one)
-    membership = Membership.create!(user: user, office: office, role: :secretary)
+  office = offices(:main_office)
+  membership = Membership.create!(user: user, office: office, role: :secretary)
 
     assert membership.has_admin_access
   end
 
   test "should prevent destroying last owner" do
-    office = offices(:one)
-    owner_membership = memberships(:one) # This is the owner
+  office = offices(:main_office)
+  owner_membership = memberships(:main_office_owner) # This is the owner
 
     # Ensure this is the only owner
     assert_equal 1, office.memberships.where(role: :owner).count
@@ -82,20 +82,20 @@ class MembershipTest < ActiveSupport::TestCase
   end
 
   test "should allow destroying owner when there are multiple owners" do
-    office = offices(:one)
+  office = offices(:main_office)
     user = users(:john)
 
     # Create another owner
     Membership.create!(user: user, office: office, role: :owner)
 
-    # Now we should be able to destroy one of them
-    owner_membership = memberships(:one)
+  # Now we should be able to destroy one of them
+  owner_membership = memberships(:main_office_owner)
 
     assert owner_membership.destroy
   end
 
   test "should enforce unique user per office" do
-    existing_membership = memberships(:one)
+  existing_membership = memberships(:main_office_owner)
     duplicate_membership = Membership.new(
       user: existing_membership.user,
       office: existing_membership.office,

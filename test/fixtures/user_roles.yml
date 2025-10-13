@@ -1,9 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  user: one
-  role: one
+provider_maria_owner_role:
+  user: provider_maria
+  role: owner_role
 
-two:
-  user: two
-  role: two
+customer_julia_secretary_role:
+  user: customer_julia
+  role: secretary_role

@@ -3,7 +3,7 @@ class Appointment < ApplicationRecord
   belongs_to :customer, class_name: "User", foreign_key: "customer_id"
   belongs_to :office
 
-  enum :status, { pending: 0, confirmed: 1, cancelled: 2, completed: 3 }
+  enum :status, { pending: 0, confirmed: 1, cancelled: 2, completed: 3, no_show: 4 }
 
   # Presence validations
   validates :start_datetime, :end_datetime, :book_datetime, presence: true
