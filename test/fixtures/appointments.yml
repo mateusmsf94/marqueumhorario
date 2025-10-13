@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  book_datetime: 2025-09-30 14:00:00
+  start_datetime: 2025-10-01 09:00:00
+  end_datetime: 2025-10-01 10:00:00
+  is_unavailability: false
+  location: MyString
+  color: MyString
+  # TODO: align status fixtures with factory once introduced
+  status: confirmed
+  provider: one
+  customer: one
+  office: one
+  id_google_calendar: MyText
+
+two:
+  book_datetime: 2025-10-02 15:00:00
+  start_datetime: 2025-10-05 13:00:00
+  end_datetime: 2025-10-05 14:00:00
+  is_unavailability: false
+  location: MyString
+  color: MyString
+  # TODO: align status fixtures with factory once introduced
+  status: confirmed
+  provider: two
+  customer: two
+  office: two
+  id_google_calendar: MyText
