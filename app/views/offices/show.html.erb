@@ -1,0 +1,97 @@
+<div class="flex min-h-full flex-col py-12 sm:px-6 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-4xl">
+    <div class="bg-white px-6 py-8 shadow-sm sm:rounded-lg dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h1 class="text-3xl/9 font-bold tracking-tight text-gray-900 dark:text-white"><%= @office.name %></h1>
+        </div>
+        <div class="flex gap-2">
+          <%= link_to "Edit", edit_office_path(@office), class: "rounded-md bg-indigo-600 px-4 py-2 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400" %>
+          <%= link_to "Back", offices_path, class: "rounded-md bg-gray-600 px-4 py-2 text-sm/6 font-semibold text-white shadow-xs hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500" %>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Office Details</h2>
+
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Address</p>
+            <p class="mt-1 text-base text-gray-900 dark:text-white"><%= @office.address %></p>
+          </div>
+
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">City & State</p>
+            <p class="mt-1 text-base text-gray-900 dark:text-white"><%= @office.city %>, <%= @office.state %></p>
+          </div>
+
+          <div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">ZIP Code</p>
+            <p class="mt-1 text-base text-gray-900 dark:text-white"><%= @office.zip_code %></p>
+          </div>
+
+          <% if @office.phone_number.present? %>
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone Number</p>
+              <p class="mt-1 text-base text-gray-900 dark:text-white"><%= @office.phone_number %></p>
+            </div>
+          <% end %>
+
+          <% if @office.gmaps_url.present? %>
+            <div>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Location</p>
+              <%= link_to "View on Google Maps", sanitize_url(@office.gmaps_url), target: "_blank", rel: "noopener noreferrer", class: "mt-1 inline-flex items-center text-base text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300" %>
+            </div>
+          <% end %>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Team Members</h2>
+          <div class="space-y-3">
+            <% @office.memberships.includes(:user).each do |membership| %>
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <p class="font-medium text-gray-900 dark:text-white">
+                  <%= membership.user.first_name %> <%= membership.user.last_name %>
+                </p>
+                <p class="text-sm text-gray-600 dark:text-gray-300"><%= membership.user.email %></p>
+                <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 mt-2">
+                  <%= membership.role.titleize %>
+                </span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 bg-white px-6 py-8 shadow-sm sm:rounded-lg dark:bg-gray-800/50 dark:shadow-none dark:outline dark:-outline-offset-1 dark:outline-white/10">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Appointments</h2>
+      <% if @office.appointments.any? %>
+        <div class="space-y-3">
+          <% @office.appointments.order(appointment_date: :desc).limit(10).each do |appointment| %>
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-medium text-gray-900 dark:text-white">
+                    <%= appointment.appointment_date.strftime("%B %d, %Y at %I:%M %p") %>
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-300">
+                    Provider: <%= appointment.provider.first_name %> <%= appointment.provider.last_name %>
+                  </p>
+                  <p class="text-sm text-gray-600 dark:text-gray-300">
+                    Customer: <%= appointment.customer.first_name %> <%= appointment.customer.last_name %>
+                  </p>
+                </div>
+                <span class="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400">
+                  <%= appointment.status %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 dark:text-gray-400">No appointments scheduled yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

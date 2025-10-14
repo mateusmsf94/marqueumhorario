@@ -4,6 +4,10 @@ class Office < ApplicationRecord
   validates :city, presence: true
   validates :state, presence: true
   validates :zip_code, presence: true
+  validates :gmaps_url, allow_blank: true, format: {
+    with: %r{\Ahttps?://[^\s]+\z}i,
+    message: "must be a valid HTTP or HTTPS URL"
+  }
 
   validate :must_have_at_least_one_owner, unless: :new_record?
 
