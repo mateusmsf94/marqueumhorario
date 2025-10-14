@@ -1,0 +1,128 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">Book an Appointment</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Provider Information -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold mb-4">Provider Information</h2>
+        <div class="space-y-2">
+          <p><strong>Name:</strong> <%= @provider.first_name %> <%= @provider.last_name %></p>
+          <p><strong>Email:</strong> <%= @provider.email %></p>
+          <p><strong>Phone:</strong> <%= @provider.phone %></p>
+        </div>
+      </div>
+
+      <!-- Office Location -->
+      <div class="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+        <h2 class="text-xl font-semibold mb-4">Office Location</h2>
+        <div class="space-y-2">
+          <p><strong>Name:</strong> <%= @office.name %></p>
+          <p><strong>Address:</strong> <%= @office.address %></p>
+          <p><strong>City:</strong> <%= @office.city %>, <%= @office.state %> <%= @office.zip_code %></p>
+          <% if @office.phone_number.present? %>
+            <p><strong>Phone:</strong> <%= @office.phone_number %></p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar and Time Slots -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Calendar -->
+      <div class="bg-white shadow-md rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <%= link_to user_office_path(@provider, @office, date: @selected_date.prev_month), class: "text-gray-600 hover:text-gray-900" do %>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          <% end %>
+          <h2 class="text-lg font-semibold"><%= @selected_date.strftime("%B %Y") %></h2>
+          <%= link_to user_office_path(@provider, @office, date: @selected_date.next_month), class: "text-gray-600 hover:text-gray-900" do %>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-sm mb-2">
+          <% %w[Sun Mon Tue Wed Thu Fri Sat].each do |day| %>
+            <div class="font-semibold text-gray-600 py-2"><%= day %></div>
+          <% end %>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1">
+          <% start_date = @selected_date.beginning_of_month.beginning_of_week(:sunday) %>
+          <% end_date = @selected_date.end_of_month.end_of_week(:sunday) %>
+          
+          <% (start_date..end_date).each do |date| %>
+            <% is_current_month = date.month == @selected_date.month %>
+            <% is_selected = date == @selected_date %>
+            <% is_today = date == Date.current %>
+            <% is_past = date < Date.current %>
+            
+            <%= link_to user_office_path(@provider, @office, date: date),
+                class: "aspect-square flex items-center justify-center rounded-full text-sm transition-colors #{
+                  is_selected ? 'bg-blue-600 text-white font-bold' :
+                  is_today ? 'bg-orange-100 text-orange-600 font-semibold' :
+                  is_past ? 'text-gray-300 cursor-not-allowed pointer-events-none' :
+                  is_current_month ? 'text-gray-900 hover:bg-gray-100' :
+                  'text-gray-400'
+                }" do %>
+              <%= date.day %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Available Time Slots -->
+      <div class="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+        <h2 class="text-xl font-semibold mb-4">
+          Available Times - <%= @selected_date.strftime("%A, %B %d, %Y") %>
+        </h2>
+
+        <% if @selected_date < Date.current %>
+          <div class="text-center py-8 text-gray-500">
+            <p>Please select a future date</p>
+          </div>
+        <% else %>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 max-h-96 overflow-y-auto">
+            <% @available_slots.each do |slot| %>
+              <% if slot[:available] %>
+                <%= link_to slot[:start_time].strftime("%H:%M"),
+                    user_office_appointments_path(@provider, @office,
+                      appointment: {
+                        start_datetime: slot[:start_time],
+                        end_datetime: slot[:end_time]
+                      }),
+                    method: :post,
+                    data: { turbo_method: :post, turbo_confirm: "Book appointment for #{slot[:start_time].strftime('%H:%M')} - #{slot[:end_time].strftime('%H:%M')}?" },
+                    class: "px-4 py-2 border border-gray-300 rounded-full text-center hover:bg-blue-50 hover:border-blue-500 transition-colors text-sm font-medium" %>
+              <% else %>
+                <div class="px-4 py-2 border border-gray-200 rounded-full text-center text-gray-400 text-sm cursor-not-allowed">
+                  <%= slot[:start_time].strftime("%H:%M") %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="flex items-center gap-4 text-sm">
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 border border-gray-300 rounded-full"></div>
+                <span class="text-gray-600">Available</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 border border-gray-200 rounded-full bg-gray-100"></div>
+                <span class="text-gray-600">Unavailable</span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <%= link_to "Back to Provider", user_path(@provider),
+            class: "mt-6 inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-md transition duration-200" %>
+      </div>
+    </div>
+  </div>
+</div>

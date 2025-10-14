@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html class="h-full bg-gray-50 dark:bg-gray-900">
   <head>
     <title><%= content_for(:title) || "Marqueumhorario" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,15 +22,13 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="h-full">
     <% if notice %>
-      <p class="notice"><%= notice %></p>
+      <p class="py-2 px-4 bg-green-50 text-green-800 border-l-4 border-green-500 dark:bg-green-900/50 dark:text-green-200 dark:border-green-600"><%= notice %></p>
     <% end %>
     <% if alert %>
-      <p class="alert"><%= alert %></p>
+      <p class="py-2 px-4 bg-red-50 text-red-800 border-l-4 border-red-500 dark:bg-red-900/50 dark:text-red-200 dark:border-red-600"><%= alert %></p>
     <% end %>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <%= yield %>
-    </main>
+    <%= yield %>
   </body>
 </html>
