@@ -89,7 +89,7 @@ jobs:
 
     steps:
       - name: Create deployment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         id: deployment
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -172,7 +172,7 @@ jobs:
         
       - name: Deployment Status
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
