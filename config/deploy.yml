@@ -95,7 +95,8 @@ builder:
 # Use a different ssh user than root
 ssh:
   user: ec2-user
-  key: <%= ENV.fetch("KAMAL_SSH_KEY_PATH") %>
+  keys:
+    - <%= ENV.fetch("KAMAL_SSH_KEY_PATH") %>
 
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:
