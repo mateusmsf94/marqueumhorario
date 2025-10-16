@@ -88,7 +88,7 @@ production:
     <<: *default
     database: marqueumhorario_production
     username: marqueumhorario
-    password: <%= ENV["MARQUEUMHORARIO_DATABASE_PASSWORD"] %>
+    password: <%= ENV["POSTGRES_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: marqueumhorario_production_cache
