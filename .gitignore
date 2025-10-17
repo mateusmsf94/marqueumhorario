@@ -38,3 +38,7 @@
 
 # Ignore test coverage files
 /coverage/
+
+# Node artifacts
+/node_modules/
+/package-lock.json
