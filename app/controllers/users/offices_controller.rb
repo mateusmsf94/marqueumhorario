@@ -16,30 +16,53 @@ class Users::OfficesController < ApplicationController
   end
 
   def generate_available_slots(date)
-    # Default office hours: 8 AM to 6 PM
-    start_hour = 8
-    end_hour = 18
-    slot_duration = 30.minutes
+    # Get the day of week (sunday, monday, etc.)
+    day_name = date.strftime("%A").downcase
+
+    # Get working plan for this day
+    day_config = @office.working_plan.dig("days", day_name)
+
+    # Return empty if office is closed this day
+    return [] unless day_config && day_config["enabled"]
+
+    # Parse working hours
+    start_time_str = day_config["start"]
+    end_time_str = day_config["end"]
+    slot_duration = @office.time_slot_duration.minutes
+
+    # Get breaks for this day
+    breaks = @office.working_plan.dig("breaks", day_name) || []
 
     slots = []
-    current_time = date.beginning_of_day + start_hour.hours
+    current_time = Time.zone.parse("#{date} #{start_time_str}")
+    end_time = Time.zone.parse("#{date} #{end_time_str}")
 
     # Generate all possible slots for the day
-    while current_time.hour < end_hour
+    while current_time + slot_duration <= end_time
       slot_end = current_time + slot_duration
 
-      # Check if slot is available (no overlapping appointments)
-      is_available = !Appointment
-        .where(office: @office, provider: @provider)
-        .where.not(status: :cancelled)
-        .where("start_datetime < ? AND end_datetime > ?", slot_end, current_time)
-        .exists?
+      # Check if slot overlaps with any break period
+      in_break = breaks.any? do |break_period|
+        break_start = Time.zone.parse("#{date} #{break_period['start']}")
+        break_end = Time.zone.parse("#{date} #{break_period['end']}")
+        current_time < break_end && slot_end > break_start
+      end
 
-      slots << {
-        start_time: current_time,
-        end_time: slot_end,
-        available: is_available && current_time > Time.current
-      }
+      # Skip slots that fall during break periods
+      unless in_break
+        # Check if slot is available (no overlapping appointments)
+        is_available = !Appointment
+          .where(office: @office, provider: @provider)
+          .where.not(status: :cancelled)
+          .where("start_datetime < ? AND end_datetime > ?", slot_end, current_time)
+          .exists?
+
+        slots << {
+          start_time: current_time,
+          end_time: slot_end,
+          available: is_available && current_time > Time.current
+        }
+      end
 
       current_time = slot_end
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_09_213507) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_23_200238) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_213507) do
     t.text "gmaps_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.jsonb "working_plan", default: {}, null: false
   end
 
   create_table "roles", force: :cascade do |t|
