@@ -58,33 +58,7 @@ class Office < ApplicationRecord
 
   # Generate available time slots for a specific day
   def generate_time_slots_for_day(day_name)
-    day_name = day_name.to_s.downcase
-    day_config = working_plan.dig("days", day_name)
-
-    return [] unless day_config && day_config["enabled"]
-
-    start_time = parse_time(day_config["start"])
-    end_time = parse_time(day_config["end"])
-    breaks = working_plan.dig("breaks", day_name) || []
-
-    slots = []
-    current_time = start_time
-
-    while current_time + time_slot_duration.minutes <= end_time
-      slot_end = current_time + time_slot_duration.minutes
-
-      # Check if this slot overlaps with any break
-      unless overlaps_with_break?(current_time, slot_end, breaks)
-        slots << {
-          start: current_time.strftime("%H:%M"),
-          end: slot_end.strftime("%H:%M")
-        }
-      end
-
-      current_time = slot_end
-    end
-
-    slots
+    WorkingPlan::TimeSlotGenerator.call(office: self, date: date)
   end
 
   # Get all available time slots for the week

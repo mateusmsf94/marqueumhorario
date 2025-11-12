@@ -71,47 +71,6 @@ class OfficesController < ApplicationController
   end
 
   def working_plan_params
-    # Extract and reconstruct working_plan from params
-    working_plan_data = params.require(:office)[:working_plan]
-
-    # Extract time slot duration
-    time_slot_duration = working_plan_data[:time_slot_duration].to_i
-
-    # Build the working_plan hash
-    days = {}
-    breaks = {}
-
-    %w[sunday monday tuesday wednesday thursday friday saturday].each do |day|
-      day_params = working_plan_data.dig(:days, day.to_sym)
-      if day_params
-        days[day] = {
-          "enabled" => day_params[:enabled] == "1",
-          "start" => day_params[:start],
-          "end" => day_params[:end]
-        }
-      end
-
-      # Handle breaks for each day
-      break_params = working_plan_data.dig(:breaks, day.to_sym)
-      if break_params.is_a?(Array)
-        breaks[day] = break_params.map do |break_data|
-          { "start" => break_data[:start], "end" => break_data[:end] }
-        end
-      elsif break_params.is_a?(Hash)
-        breaks[day] = break_params.values.map do |break_data|
-          { "start" => break_data[:start], "end" => break_data[:end] }
-        end
-      else
-        breaks[day] = []
-      end
-    end
-
-    {
-      working_plan: {
-        "time_slot_duration" => time_slot_duration,
-        "days" => days,
-        "breaks" => breaks
-      }
-    }
+    WorkingPlan::ParameterTransformer.call(params: params[:office])
   end
 end
