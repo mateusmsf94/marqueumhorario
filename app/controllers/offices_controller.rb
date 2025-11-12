@@ -1,7 +1,7 @@
 class OfficesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_office, only: [ :show, :edit, :update, :destroy ]
-  before_action :authorize_office_access, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_office, only: [ :show, :edit, :update, :destroy, :working_plan, :update_working_plan ]
+  before_action :authorize_office_access, only: [ :show, :edit, :update, :destroy, :working_plan, :update_working_plan ]
 
   def index
     @offices = current_user.offices
@@ -20,7 +20,7 @@ class OfficesController < ApplicationController
     if @office.save
       # Create membership making the current user the owner
       @office.memberships.create(user: current_user, role: :owner)
-      redirect_to offices_path, notice: "Office was successfully created."
+      redirect_to working_plan_office_path(@office), notice: "Office was successfully created. Now configure the working plan."
     else
       render :new, status: :unprocessable_entity
     end
@@ -42,6 +42,17 @@ class OfficesController < ApplicationController
     redirect_to offices_path, notice: "Office was successfully deleted."
   end
 
+  def working_plan
+  end
+
+  def update_working_plan
+    if @office.update(working_plan_params)
+      redirect_to offices_path, notice: "Working plan was successfully configured."
+    else
+      render :working_plan, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_office
@@ -57,5 +68,9 @@ class OfficesController < ApplicationController
 
   def office_params
     params.require(:office).permit(:name, :address, :city, :state, :zip_code, :phone_number, :gmaps_url)
+  end
+
+  def working_plan_params
+    WorkingPlan::ParameterTransformer.call(params: params[:office])
   end
 end
